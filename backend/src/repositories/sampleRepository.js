@@ -16,6 +16,16 @@ const sampleRepository = {
     const result = await query(sql);
     return result.rows;
   },
+
+  // 3. 사용자 이름(username)과 나이(userage)로 존재 여부 확인 (SELECT)
+  findByUsernameAndAge: async (username, userage) => {
+    // SQL 쿼리 조건에 username과 userage를 모두 사용하고, 두 값을 파라미터로 전달
+    const sql = "SELECT id FROM samples WHERE username = $1 AND userage = $2";
+    const result = await query(sql, [username, userage]);
+
+    // 결과가 있으면 첫 번째 row를 반환
+    return result.rows[0];
+  },
 };
 
 module.exports = sampleRepository;
