@@ -23,4 +23,5 @@ const connectDB = async () => {
 module.exports = {
   query: (text, params) => pool.query(text, params), // 쿼리 함수 제공
   connectDB,
+  pool: pool,
 };

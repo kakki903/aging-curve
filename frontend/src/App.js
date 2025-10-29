@@ -1,26 +1,74 @@
-import React, { useState } from "react";
-import SampleInput from "./views/samples/SampleInput";
-import SampleList from "./views/samples/SampleList";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+// 변경된 디렉토리 구조에 맞게 컴포넌트 import
+import MainPage from "./pages/Main/MainPage";
+import SignUpPage from "./pages/Auth/SignUpPage";
+import VerifyEmailPage from "./pages/Token/VerifyEmailPage";
+import LoginPage from "./pages/Auth/LoginPage";
 
 function App() {
-  // 상태가 변경될 때마다 SampleList를 새로고침하기 위한 트리거
-  const [refreshList, setRefreshList] = useState(0);
+  // 1. 로그인 상태 (isLoggedIn) 관리
+  // 초기값은 로컬 스토리지에 'token'이 있는지 확인하여 설정
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
-  // 데이터가 성공적으로 제출되면 이 함수를 호출하여 리스트를 새로고침
-  const handleDataSubmitted = () => {
-    setRefreshList((prev) => prev + 1);
+  // 2. 토큰 변경 감지 (옵션)
+  // 컴포넌트 마운트 시 토큰 존재 여부를 다시 확인
+  useEffect(() => {
+    // window.addEventListener('storage', handleStorageChange); // 로컬 스토리지 변경 이벤트 감지 (옵션)
+    setIsLoggedIn(!!localStorage.getItem("token"));
+    // return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // 3. Protected Route 컴포넌트 정의 (로그인 보호)
+  // 이 컴포넌트에 감싸진 페이지는 로그인이 되어야 접근 가능합니다.
+  const ProtectedRoute = ({ children }) => {
+    if (!isLoggedIn) {
+      // 토큰이 없으면 로그인 페이지로 강제 이동
+      return <Navigate to="/login" replace />;
+    }
+    return children;
   };
 
   return (
-    <div style={{ padding: "50px", maxWidth: "600px", margin: "0 auto" }}>
-      <h1>PostgreSQL 연동 포트폴리오 예제</h1>
-
-      <SampleInput onDataSubmitted={handleDataSubmitted} />
-
-      <hr style={{ margin: "30px 0" }} />
-
-      <SampleList refreshTrigger={refreshList} />
-    </div>
+    <Router>
+      <div
+        className="app-container"
+        style={{ fontFamily: "Arial, sans-serif" }}
+      >
+        <Routes>
+          <Route
+            path="/main"
+            element={
+              <ProtectedRoute>
+                <MainPage setIsLoggedIn={setIsLoggedIn} />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route
+            path="/login"
+            element={
+              isLoggedIn ? (
+                <Navigate to="/main" replace />
+              ) : (
+                <LoginPage setIsLoggedIn={setIsLoggedIn} />
+              )
+            }
+          />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route
+            path="*"
+            element={<Navigate to={isLoggedIn ? "/main" : "/login"} replace />}
+          />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

@@ -1,7 +1,7 @@
 // .env 파일 로드
 require("dotenv").config();
 const express = require("express");
-const apiRouter = require("./src/routes/api"); // 라우터 불러오기
+const apiRouter = require("./src/routes/index"); // 통합 Router
 const cors = require("cors"); // CORS 미들웨어 불러오기
 const { connectDB } = require("./src/config/db"); // 구조분해 할당으로 함수를 불러옵니다.
 connectDB(); // DB 연결
@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 1. CORS 설정 추가: React 앱의 주소로만 허용하는 것이 보안에 좋습니다.
-// React의 기본 개발 서버 포트: 3000 (프론트엔드 서버 포트)
+// React의 기본 개발 서버 포트: 3001 (프론트엔드 서버 포트)
 const corsOptions = {
   origin: "http://localhost:3001",
   credentials: true,
