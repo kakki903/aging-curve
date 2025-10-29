@@ -2,7 +2,7 @@ SELECT * FROM "Account_Local";
 SELECT * FROM "Account_Social";
 SELECT * FROM "Account_User";
 SELECT * FROM "Account_Verification_Token";
-
+SELECT NOW();
 /*
 DROP TABLE "Account_Social";
 DROP TABLE "Account_Local";
@@ -23,10 +23,10 @@ CREATE TABLE "Account_User" (
     
     -- Soft Delete 필드
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE, 
-    deleted_at TIMESTAMP WITHOUT TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 COMMENT ON TABLE "Account_User" IS '모든 사용자 유형의 공통 정보 (Soft Delete 포함)';
@@ -82,8 +82,8 @@ CREATE TABLE "Account_Verification_Token" (
     token VARCHAR(255) PRIMARY KEY,
     user_id INT NOT NULL,
     token_type VARCHAR(50) NOT NULL,
-    expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_token_Account_User
         FOREIGN KEY (user_id)
