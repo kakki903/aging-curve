@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10; // 해싱 강도 설정
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
+const { loginsocial } = require("../../controllers/auth/authController");
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -49,7 +50,7 @@ const authService = {
       expiresAt.toISOString()
     );
 
-    const verificationLink = `http://localhost:3001/verify-email?token=${token}`;
+    const verificationLink = `${process.env.FRONTEND_BASE_URL}/verify-email?token=${token}`;
     await transporter.sendMail({
       form: process.env.EMAIL_USER,
       to: newUser.email,
@@ -104,11 +105,76 @@ const authService = {
     if (tokenRecord.token_type !== "EMAIL_VERIFICATION") {
       throw new Error("토큰이 잘못되었습니다.");
     }
+    const userId = tokenRecord.user_id;
 
     await tokenRepository.verifyUser(userId);
     await tokenRepository.deleteToken(token);
 
     return { success: true, userId };
+  },
+
+  // 🔑 소셜 로그인 처리 로직 (가입 또는 로그인)
+  socialLogin: async (provider, socialId, profile) => {
+    // 1. 소셜 계정으로 기존 사용자 검색
+    const existingSocialAccount = await userRepository.findSocialAccount(
+      provider,
+      socialId
+    );
+
+    if (existingSocialAccount) {
+      // 이미 등록된 소셜 계정: 즉시 로그인 처리
+      return existingSocialAccount;
+    }
+    // 2. 새로운 소셜 계정
+    const email = profile._json?.kakao_account?.email || null; // 카카오에서 이메일 정보 제공 시
+    const nickname =
+      profile.username || profile.displayName || `${provider}_user_${socialId}`;
+
+    let existingUser = null;
+
+    // 3. 이메일 중복 체크: 이미 같은 이메일로 로컬 계정이 있는지 확인
+    if (email) {
+      existingUser = await userRepository.findByEmail(email);
+    }
+
+    if (existingUser) {
+      // 이메일이 기존 로컬 계정과 일치: 소셜 계정을 기존 유저에 연결 (Account_Social에 새 레코드 추가)
+      await userRepository.linkSocialAccount(
+        existingUser.user_id,
+        provider,
+        socialId
+      );
+      return existingUser; // 기존 유저 정보 반환 (로그인)
+    } else {
+      // 완전히 새로운 사용자: User, Social 계정 모두 생성
+      const newUser = await userRepository.createSocialUser(
+        provider,
+        socialId,
+        email,
+        nickname
+      ); // Account_User에 등록
+
+      // ⭐️ 주의: 소셜 로그인은 is_verified가 기본적으로 TRUE로 간주됩니다.
+      return newUser;
+    }
+  },
+  // 2. 로컬 로그인 서비스
+  loginSocial: async (user_id) => {
+    // 1. 이메일로 사용자 및 인증 정보 조회
+    const user = await userRepository.findByUserId(user_id);
+    console.log(user);
+
+    // 2. 계정 상태 검증
+    if (user.is_deleted) {
+      throw new Error("탈퇴 처리된 계정입니다.");
+    }
+
+    if (!user) {
+      throw new Error("로그인 실패하였습니다..");
+    }
+
+    const { password: _, ...userInfo } = user; // password 필드 제거
+    return userInfo;
   },
 };
 

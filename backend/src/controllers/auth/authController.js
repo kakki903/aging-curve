@@ -97,6 +97,44 @@ const authController = {
       });
     }
   },
+
+  // 로컬 로그인 POST 요청 처리
+  loginSocial: async (req, res) => {
+    const { userId } = req.body;
+    console.log("=======");
+    console.log(req.body);
+    console.log("=======");
+
+    if (!userId) {
+      return res.status(400).json({ message: "로그인 실패하였습니다." });
+    }
+
+    try {
+      const user = await authService.loginSocial(userId);
+
+      // 1. JWT 토큰 생성 (사용자 ID와 권한 정보를 담음)
+      const token = jwt.sign(
+        { userId: user.user_id, role: user.role_type },
+        JWT_SECRET,
+        { expiresIn: "1h" } // 토큰 만료 시간 설정
+      );
+
+      // 2. 응답: 토큰과 사용자 정보를 클라이언트에 반환
+      res.status(200).json({
+        message: "로그인 성공",
+        token: token,
+        user: {
+          user_id: user.user_id,
+          nickname: user.nickname,
+          email: user.email,
+          role_type: user.role_type,
+        },
+      });
+    } catch (error) {
+      // Service에서 발생한 오류 (비밀번호 불일치, 미인증 등) 처리
+      res.status(401).json({ message: error.message }); // 401: Unauthorized
+    }
+  },
 };
 
 module.exports = authController;
