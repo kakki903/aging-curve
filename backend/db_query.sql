@@ -95,4 +95,50 @@ CREATE TABLE "Account_Verification_Token" (
     CONSTRAINT uq_user_token_type
         UNIQUE (user_id, token_type)
 );
+
+-- 1. Account_User 테이블은 이미 존재한다고 가정하고 User_Profile_Info 테이블을 생성합니다.
+--    'account_id'는 Account_User 테이블의 PK인 user_id를 참조해야 합니다.
+--    **참조 컬럼을 Account_User(user_id)로 수정했습니다.**
+--    UNIQUE 제약으로 Account_User 당 하나의 프로필 레코드만 가지는 1:1 관계를 보장합니다.
+
+CREATE TABLE User_Profile_Info (
+    -- 기본 키 (Primary Key) 설정
+    account_id BIGINT PRIMARY KEY, -- 이 컬럼은 user_id와 동일한 값을 가집니다.
+    
+    -- 이름 및 직장 정보
+    name_ko VARCHAR(50) NOT NULL,              -- 한글 이름 (필수)
+    name_ch VARCHAR(50),                       -- 한자 이름 (선택적)
+    
+    -- 생년월일 및 출생 시간
+    birth_day DATE NOT NULL,                   -- 생년월일 (날짜 타입)
+    birth_time TIME WITHOUT TIME ZONE,         -- 출생 시간 (시간 타입, 표준 시간대 제외)
+    
+    -- 직장 정보
+    working_company VARCHAR(255),              -- 현재 직장명
+    working_regno VARCHAR(20) UNIQUE,          -- 사업자번호 (고유해야 함, 선택적)
+    working_years SMALLINT NOT NULL DEFAULT 0, -- 근무 년차 (작은 정수, 0년차부터 시작 가능)
+    
+    -- 연봉 정보 (정밀한 계산을 위해 NUMERIC 사용, 단위: 만 원)
+    current_salary NUMERIC(10, 2) NOT NULL DEFAULT 0.00, 
+    
+    -- 시간 관리
+    createAt TIMESTAMPTZ NOT NULL DEFAULT NOW(), -- 등록 시간 (표준 시간대 포함)
+    -- updateAt은 이제 트리거 없이 수동으로 관리됩니다.
+    updateAt TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+    
+    -- 1:1 관계를 보장하기 위한 UNIQUE 제약 조건
+    -- account_id가 PK이므로 사실상 중복 체크는 보장되나, 명시적으로 FK 설정
+    UNIQUE (account_id),
+    
+    -- Account_User 테이블과의 외래 키 설정 (FK)
+    -- **참조 컬럼을 Account_User 테이블의 user_id로 변경합니다.**
+    -- ON DELETE CASCADE: Account_User 레코드가 삭제되면 프로필 정보도 함께 삭제
+    FOREIGN KEY (account_id)
+        REFERENCES "Account_User" (user_id) -- Account_User의 user_id를 참조
+        ON DELETE CASCADE
+);
+
+-- 주석 추가
+COMMENT ON COLUMN User_Profile_Info.account_id IS 'Account_User 테이블의 PK인 user_id를 참조하는 외래 키 (1:1 관계)';
+COMMENT ON COLUMN User_Profile_Info.current_salary IS '현재 연봉 (단위: 만 원)';
 */
