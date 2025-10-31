@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10; // 해싱 강도 설정
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
-const { loginsocial } = require("../../controllers/auth/authController");
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",

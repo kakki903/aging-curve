@@ -101,9 +101,6 @@ const authController = {
   // 로컬 로그인 POST 요청 처리
   loginSocial: async (req, res) => {
     const { userId } = req.body;
-    console.log("=======");
-    console.log(req.body);
-    console.log("=======");
 
     if (!userId) {
       return res.status(400).json({ message: "로그인 실패하였습니다." });
