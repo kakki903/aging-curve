@@ -8,9 +8,6 @@ function MainPage({ setIsLoggedIn }) {
   useEffect(() => {
     // 로컬 스토리지에서 저장된 사용자 정보(닉네임)를 가져와 표시
     const storedUser = localStorage.getItem("user");
-    console.log("여기");
-    console.log(localStorage.getItem("user"));
-    console.log("여기");
     if (storedUser) {
       try {
         const userObj = JSON.parse(storedUser);

@@ -54,8 +54,7 @@ function LoginPage({ setIsLoggedIn }) {
         const userId = decoded.userId;
         const res = await api.post("/auth/login-social", { userId: userId });
         saveToken(token);
-        console.log(res.data.user);
-        saveUser(res.data.user);
+        saveUser(JSON.stringify(res.data.user));
         setIsLoggedIn(true); // 외부 상태 업데이트
         setMessage(`✅ 소셜 로그인 성공!`);
         // replace: true를 사용하여 URL 히스토리에 토큰이 남지 않도록 합니다.
@@ -105,9 +104,9 @@ function LoginPage({ setIsLoggedIn }) {
       const res = await api.post("/auth/login-local", formData);
 
       // 1. 성공 시 JWT 토큰을 로컬 스토리지에 저장
-      localStorage.setItem("token", res.data.token);
+      saveToken(res.data.token);
       // [선택 사항] 사용자 정보도 저장 (user_id, nickname 등)
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      saveUser(JSON.stringify(res.data.user));
 
       // 2. 로그인 상태 업데이트 (App.js에서 상태 관리)
       setIsLoggedIn(true);
