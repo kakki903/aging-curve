@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 
-// 연차 드롭다운 옵션 (1년차부터 30년차 이상까지)
 const experienceYears = Array.from({ length: 30 }, (_, i) => i + 1);
-
-// 현재 날짜를 YYYY-MM-DD 문자열로 변환하는 헬퍼 함수
 const formatDate = (date) => date.toISOString().split("T")[0];
 
 function MainPage({ setIsLoggedIn }) {
   const navigate = useNavigate();
   const [userNickname, setUserNickname] = useState("Guest");
+  const [profileData, setProfileData] = useState(undefined);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     // 로컬 스토리지에서 저장된 사용자 정보(닉네임)를 가져와 표시
@@ -35,13 +34,41 @@ function MainPage({ setIsLoggedIn }) {
     }
   }, []);
 
+  const fetchProfile = useCallback(async () => {
+    console.log("프로필 조회");
+    setIsPageLoading(true);
+    try {
+      const res = await api.get("/profile/info");
+      setProfileData(res.data.profile);
+    } catch (error) {
+      console.log(error);
+      setProfileData(null);
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  if (isPageLoading) {
+    return (
+      <div className="text-center p-10 mt-20 text-xl text-gray-600">
+        데이터를 불러오는 중입니다...
+      </div>
+    );
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("token"); // 1. 토큰 삭제
     localStorage.removeItem("user"); // 2. 사용자 정보 삭제
     setIsLoggedIn(false); // 3. 상태 업데이트
     navigate("/login"); // 4. 로그인 페이지로 리다이렉트
   };
-
+  const handleProfileSubmitSuccess = () => {
+    fetchProfile();
+  };
   return (
     <div
       style={{
@@ -82,7 +109,11 @@ function MainPage({ setIsLoggedIn }) {
         </button>
       </h1>
       <div>
-        <UserInfoForm />
+        {profileData ? (
+          <ProfileView data={profileData} />
+        ) : (
+          <ProfileInitForm onProfileSubmit={handleProfileSubmitSuccess} />
+        )}
       </div>
     </div>
   );
@@ -98,7 +129,8 @@ const FormField = ({ label, name, children }) => (
     {children}
   </div>
 );
-const UserInfoForm = () => {
+
+const ProfileInitForm = () => {
   // ⭐️ 1. 현재 날짜 기준 20년 전 날짜를 초기값으로 설정
   const today = new Date();
   const twentyYearsAgo = new Date(today);
@@ -150,11 +182,9 @@ const UserInfoForm = () => {
         current_salary: Number(formData.salary),
       };
 
-      console.log(payload);
-
-      // const res = await api.post("/profile/info-init", payload);
-      // setMessage(`✅ 정보 등록 성공! 서버 응답: ${res.data.message}`);
-      // console.log("최종 전송 데이터 (payload):", payload);
+      const res = await api.post("/profile/init", payload);
+      setMessage(`✅ 정보 등록 성공! 서버 응답: ${res}`);
+      console.log("최종 전송 데이터 (payload):", payload);
     } catch (error) {
       console.error("폼 제출 오류:", error);
       setMessage(`❌ 등록 실패: ${error.message || "서버 통신 오류"}`);
@@ -329,6 +359,50 @@ const UserInfoForm = () => {
           </button>
         </div>
       </form>
+    </div>
+  );
+};
+
+const ProfileView = ({ data }) => {
+  if (!data) return null;
+
+  // 데이터를 보기 좋게 포맷팅
+  const displayItems = [
+    { label: "사용자 ID", value: data.user_id },
+    { label: "닉네임", value: data.nickname },
+    { label: "한글 이름", value: data.name_ko },
+    { label: "한자 이름", value: data.name_ch },
+    { label: "생년월일", value: data.birth_day },
+    { label: "출생 시간", value: data.birth_time },
+    { label: "현 직장명", value: data.working_company || "미입력" },
+    { label: "사업자번호", value: data.working_regno || "미입력" },
+    { label: "현 직장 연차", value: `${data.working_years || 0}년차` },
+    {
+      label: "연봉",
+      value: `${data.current_salary?.toLocaleString() || 0}만 원`,
+    },
+  ];
+
+  return (
+    <div className="p-8 max-w-lg mx-auto bg-white shadow-xl rounded-xl">
+      <h2 className="text-3xl font-extrabold text-green-600 text-center mb-6 border-b pb-3">
+        ✅ 등록된 프로필 정보
+      </h2>
+      <p className="text-gray-600 mb-6 text-sm">
+        프로필 정보가 성공적으로 조회되었습니다.
+      </p>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-left">
+        {displayItems.map((item, index) => (
+          <div key={index} className="col-span-1">
+            <span className="block text-sm font-medium text-gray-500">
+              {item.label}
+            </span>
+            <span className="block text-lg font-semibold text-gray-900">
+              {item.value}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

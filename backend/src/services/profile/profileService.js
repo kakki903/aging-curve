@@ -12,7 +12,23 @@ const profileService = {
     working_regno,
     current_salary
   ) => {
-    const user = await profileRepository.findByEmailWithAuth(email);
+    const profileInfo = await profileRepository.initProfile(
+      user_id,
+      name_ko,
+      name_ch,
+      birth_day,
+      birth_time,
+      working_company,
+      working_years,
+      working_regno,
+      current_salary
+    );
+    return profileInfo;
+  },
+
+  infoProfile: async (user_id) => {
+    const result = await profileRepository.infoProfile(user_id);
+    return result;
   },
 };
 

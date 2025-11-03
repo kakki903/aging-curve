@@ -161,7 +161,6 @@ const authService = {
   loginSocial: async (user_id) => {
     // 1. 이메일로 사용자 및 인증 정보 조회
     const user = await userRepository.findByUserId(user_id);
-    console.log(user);
 
     // 2. 계정 상태 검증
     if (user.is_deleted) {

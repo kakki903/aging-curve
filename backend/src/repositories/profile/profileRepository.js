@@ -13,10 +13,10 @@ const profileRepository = {
     current_salary
   ) => {
     const sql = `
-        INSERT INTO "User_profile_info" (user_id, name_ko, name_ch, birth_day, birth_time, working_company, working_years, working_regno, current_salary, createat )
+        INSERT INTO "User_Profile_Info" (user_id, name_ko, name_ch, birth_day, birth_time, working_company, working_years, working_regno, current_salary, createat )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
     `;
-    await query(sql, [
+    const profileInfo = await query(sql, [
       user_id,
       name_ko,
       name_ch,
@@ -27,7 +27,17 @@ const profileRepository = {
       working_regno,
       current_salary,
     ]);
-    // 반환 값 없음
+    return profileInfo;
+  },
+
+  infoProfile: async (user_id) => {
+    const sql = `
+      SELECT name_ko, name_ch, birth_day, birth_time, working_company, working_years, working_regno, current_salary, createAt
+      FROM "User_Profile_Info" WHERE user_id = $1
+    `;
+
+    const result = await query(sql, [user_id]);
+    return result.rows[0];
   },
 };
 
