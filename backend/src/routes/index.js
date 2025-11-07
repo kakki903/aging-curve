@@ -4,7 +4,9 @@ const router = express.Router();
 // 1. 기능별 라우터 불러오기
 const authRoutes = require("./authRoutes");
 const profileRoutes = require("./profileRoutes");
+const openaiRoutes = require("./openaiRoutes");
 // '/api/v1' 뒤에 '/auth'가 붙습니다.
 router.use("/auth", authRoutes);
 router.use("/profile", profileRoutes);
+router.use("/openai", openaiRoutes);
 module.exports = router;

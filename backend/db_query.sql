@@ -141,4 +141,62 @@ CREATE TABLE "User_Profile_Info" (
 -- 주석 추가
 COMMENT ON COLUMN "User_Profile_Info".user_id IS 'Account_User 테이블의 PK인 user_id를 참조하는 외래 키 (1:1 관계)';
 COMMENT ON COLUMN "User_Profile_Info".current_salary IS '현재 연봉 (단위: 만 원)';
+
+CREATE TABLE "Monthly_Prediction" (
+    -- 기본 키
+    prediction_month_id SERIAL PRIMARY KEY,
+    
+    -- 예측 대상 식별 및 메타데이터 (입력 값)
+    user_id INTEGER NOT NULL,
+    name_ko character varying(50) NOT NULL, -- NOT NULL을 추가하여 제약 조건에 포함되도록 명확히 함
+    name_ch character varying(50),
+    birth_day date NOT NULL, -- NOT NULL을 추가하여 제약 조건에 포함되도록 명확히 함
+    birth_time time without time zone,
+    working_company character varying(255),
+    working_regno character varying(20),
+    working_years smallint DEFAULT 0,
+    current_salary numeric(10,2) DEFAULT 0.00,
+    
+    -- 예측 결과 및 기준 시점
+    prediction_json JSONB NOT NULL,
+    created_month varchar(6) NOT NULL,
+    
+    -- 데이터 생성 시점
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- ✨ 강화된 복합 UNIQUE 제약 조건 ✨
+    -- 이 조합이 완전히 일치할 때만 동일한 기록으로 간주되어 중복 방지
+    UNIQUE (
+        user_id, name_ko, name_ch, birth_day, birth_time, 
+        working_company, working_regno, working_years, 
+        current_salary, created_month
+    ) 
+);
+
+CREATE TABLE "Yearly_Prediction" (
+    -- 기본 키
+    prediction_year_id SERIAL PRIMARY KEY,
+    
+    -- 예측 대상 식별 및 메타데이터 (입력 값)
+    user_id INTEGER NOT NULL,
+    name_ko character varying(50) NOT NULL, -- NOT NULL을 추가하여 제약 조건에 포함되도록 명확히 함
+    name_ch character varying(50),
+    birth_day date NOT NULL, -- NOT NULL을 추가하여 제약 조건에 포함되도록 명확히 함
+    birth_time time without time zone,
+    working_company character varying(255),
+    working_regno character varying(20),
+    working_years smallint DEFAULT 0,
+    current_salary numeric(10,2) DEFAULT 0.00,
+    
+    prediction_json JSONB NOT NULL,
+    created_year varchar(4) NOT NULL,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (
+        user_id, name_ko, name_ch, birth_day, birth_time, 
+        working_company, working_regno, working_years, 
+        current_salary, created_year
+    )
+);
 */

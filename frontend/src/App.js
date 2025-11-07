@@ -11,6 +11,9 @@ import MainPage from "./pages/Main/MainPage";
 import SignUpPage from "./pages/Auth/SignUpPage";
 import VerifyEmailPage from "./pages/Token/VerifyEmailPage";
 import LoginPage from "./pages/Auth/LoginPage";
+import Predict1YearPage from "./pages/Predict/Predict1YearPage";
+import Predict10YearPage from "./pages/Predict/Predict10YearPage";
+import PredictLifetimePage from "./pages/Predict/PredictLifetimePage";
 
 function App() {
   // 1. 로그인 상태 (isLoggedIn) 관리
@@ -47,6 +50,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainPage setIsLoggedIn={setIsLoggedIn} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/predict/1year"
+            element={
+              <ProtectedRoute>
+                <Predict1YearPage setIsLoggedIn={setIsLoggedIn} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/predict/10year"
+            element={
+              <ProtectedRoute>
+                <Predict10YearPage setIsLoggedIn={setIsLoggedIn} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/predict/lifetime"
+            element={
+              <ProtectedRoute>
+                <PredictLifetimePage setIsLoggedIn={setIsLoggedIn} />
               </ProtectedRoute>
             }
           />
